@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required for creating an account"],
       minlength: [6, "password should be contain more than 6 character"],
-      select: false, // means the field will **not be included in query results by default**. It will only be returned if it is **explicitly requested in the query**.
+      select: false,
     },
   },
   {
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function (next: (err?: Error) => void) {
   if (!this.isModified("password")) {
     return next();
   }
@@ -39,10 +39,9 @@ userSchema.pre("save", async function (next) {
   return next();
 });
 
-userSchema.methods.comparePassword = async function(password){
-  return await bcrypt.compare(password,this.password)
-
-}
+userSchema.methods.comparePassword = async function (password: string) {
+  return await bcrypt.compare(password, this.password);
+};
 
 const userModel = mongoose.model("User", userSchema);
 
