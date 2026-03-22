@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import userModel from "../models/user.model";
 import jwt from "jsonwebtoken";
+import emailService from "../services/email.service"
 
 /**
  * - user register controller
@@ -36,6 +37,9 @@ export const userRegisterController = async (req: Request, res: Response) => {
       user: { _id: user._id, email: user.email, name: user.name },
       token,
     });
+
+    console.log(user.email, user.name,"23456789")
+    await emailService.sendRegistrationEmail(user.email, user.name)
   } catch (error) {
     console.error("Register error:", error);
     res.status(500).json({ success: false, message: "Error creating user" });
