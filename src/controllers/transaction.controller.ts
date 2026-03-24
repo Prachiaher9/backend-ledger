@@ -4,8 +4,28 @@ import ledgerModel from "../models/ledger.model";
 import accountModel from "../models/account.model";
 import emailService from "../services/email.service";
 
+/**
+ * Create a new transaction
+ *
+ * THE 10-STEP TRANSFER FLOW:
+ *
+ * 1. Validate request
+ * 2. Validate idempotency key
+ * 3. Check account status
+ * 4. Derive sender balance from ledger
+ * 5. Create transaction (PENDING)
+ * 6. Create DEBIT ledger entry
+ * 7. Create CREDIT ledger entry
+ * 8. Mark transaction COMPLETED
+ * 9. Commit MongoDB session
+ * 10. Send email notification
+ */
+
 const createTransaction = async (req: Request, res: Response) => {
   try {
+    /**
+     * 1 - Validate user inputs
+     */
     const { fromAccount, toAccount, amount, idempotencyKey } = req.body;
 
     if (!fromAccount || !toAccount || !amount || !idempotencyKey) {
@@ -22,10 +42,51 @@ const createTransaction = async (req: Request, res: Response) => {
         message: "Invalid fromAccount or toAccount",
       });
     }
-    return res.status(200).json({
-      message: "Validation passed (logic not complete)",
+
+    /**
+     * 2.Validate idempotency key
+     */
+
+    const isTransactionAlreadyExists = await transactionModel.findOne({
+      idemPotencyKey: idempotencyKey,
     });
 
+    if (isTransactionAlreadyExists) {
+      if (isTransactionAlreadyExists.status === "COMPLETED") {
+        return res.status(200).json({
+          message: "Transaction already processed",
+          transaction: isTransactionAlreadyExists,
+        });
+      }
+      if (isTransactionAlreadyExists.status === "PENDING") {
+        return res.status(200).json({
+          message: "Transaction is still processing",
+        });
+      }
+      if (isTransactionAlreadyExists.status === "FAILED") {
+        return res.status(500).json({
+          message: "Transaction processing failed,please retry ",
+        });
+      }
+      if (isTransactionAlreadyExists.status === "REVERSED") {
+        return res.status(500).json({
+          message: "Transaction processing reversed,please retry ",
+        });
+      }
+    }
+
+    /**
+     * 3.check account status
+     */
+    if (
+      fromUserAccount.status !== "ACTIVE" ||
+      toUserAccount.status !== "ACTIVE"
+    ) {
+      return res.status(400).json({
+        message:
+          "Both fromAccount and toAccount must be ACTIVE to process transaction",
+      });
+    }
   } catch (error) {
     return res.status(500).json({
       message: "Internal server error",
