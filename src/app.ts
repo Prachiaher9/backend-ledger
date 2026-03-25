@@ -9,7 +9,9 @@ app.use(cookieParser())
 // Routes required
 import authRouter  from "./routes/auth.routes";
 import accountRouter from "./routes/accounts.route"
+import transactionRoutes from "./routes/transaction.route";
 
 // Use Routes 
 app.use("/api/auth",authRouter)
 app.use("/api/accounts",accountRouter)
+app.use("/api/transactions",transactionRoutes)

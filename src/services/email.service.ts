@@ -59,5 +59,60 @@ async function sendRegistrationEmail(
   await sendEmail(userEmail, subject, text, html);
 }
 
-const emailService = { sendRegistrationEmail };
+async function sendTransactionEmail(
+  userEmail: string,
+  name: string,
+  amount: number,
+  toAccount: string
+): Promise<void> {
+  const subject = 'Transaction Successful!';
+  
+  const text = `Hello ${name},
+
+Your transaction of ₹${amount} to account ${toAccount} was successful.
+
+Best regards,
+The Backend Ledger Team`;
+
+  const html = `
+    <p>Hello ${name},</p>
+    <p>Your transaction of <strong>₹${amount}</strong> to account <strong>${toAccount}</strong> was successful.</p>
+    <p>Best regards,<br/>The Backend Ledger Team</p>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+}
+
+async function sendTransactionFailureEmail(
+  userEmail: string,
+  name: string,
+  amount: number,
+  toAccount: string
+): Promise<void> {
+  const subject = 'Transaction Failed';
+
+  const text = `Hello ${name},
+
+Your transaction of ₹${amount} to account ${toAccount} has failed.
+
+Please try again or contact support if the issue persists.
+
+Best regards,
+The Backend Ledger Team`;
+
+  const html = `
+    <p>Hello ${name},</p>
+    <p>Your transaction of <strong>₹${amount}</strong> to account <strong>${toAccount}</strong> has <span style="color:red;">failed</span>.</p>
+    <p>Please try again or contact support if the issue persists.</p>
+    <p>Best regards,<br/>The Backend Ledger Team</p>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+}
+const emailService = {
+  sendRegistrationEmail,
+  sendTransactionEmail,
+  sendTransactionFailureEmail,
+};
+
 export default emailService;

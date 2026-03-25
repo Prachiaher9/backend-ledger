@@ -3,6 +3,7 @@ import transactionModel from "../models/transaction.model";
 import ledgerModel from "../models/ledger.model";
 import accountModel from "../models/account.model";
 import emailService from "../services/email.service";
+import mongoose from "mongoose";
 
 /**
  * Create a new transaction
@@ -98,11 +99,59 @@ const createTransaction = async (req: Request, res: Response) => {
             message: `Insufficient balance. Current balance is ${balance}. Requested amount is ${amount}`
         })
     }
+
+    /**
+     * 5.Create transaction (PENDING)
+     */
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    const transaction = await transactionModel.create({
+      fromAccount,
+      toAccount,
+      amount,
+      idemPotencyKey,
+      status:"PENDING"
+    },{session})
+
+    const debitLedgerEntry = await ledgerModel.create({
+      account : fromAccount,
+      amount : amount,
+      transaction : transaction._id,
+      type:"DEBIT"
+    },{session})
+
+
+    const creditLedgerEntry = await ledgerModel.create({
+      account : toAccount,
+      amount : amount,
+      transaction : transaction._id,
+      type:"CREDIT"
+    },{session})
+
+    transaction.status = "COMPLETED"
+    await transaction.save({session})
+
+    await session.commitTransaction()
+    session.endSession()
+
+    /**
+     * 10.Send email notification
+     */
+
+    await emailService.sendTransactionEmail(req.user.email, req.user.name,amount,toAccount)
+
+    return res.status(201).json({
+      message:"Transaction completed successfully",
+      transaction:transaction
+    })
   } catch (error) {
     return res.status(500).json({
       message: "Internal server error",
     });
   }
 };
+
+
 
 export default createTransaction;
