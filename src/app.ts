@@ -11,7 +11,12 @@ import authRouter  from "./routes/auth.routes";
 import accountRouter from "./routes/accounts.route"
 import transactionRoutes from "./routes/transaction.route";
 
+app.get("/",(req,res)=>{
+    res.send("Ledger Service is up and running...")
+})
+
 // Use Routes 
 app.use("/api/auth",authRouter)
 app.use("/api/accounts",accountRouter)
-app.use("/api/transactions",transactionRoutes)
+app.use("/api/transactions",transaction
+    Routes)
