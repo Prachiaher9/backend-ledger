@@ -1,6 +1,6 @@
 import express from "express"
 import {authMiddleware} from "../middleware/auth.middleware"
-import createAccount, { getUserAccountsController } from "../controllers/account.controller"
+import createAccount, { getAccountBalanceController, getUserAccountsController } from "../controllers/account.controller"
 
 const router = express.Router()
 
@@ -18,6 +18,14 @@ router.post("/",authMiddleware,createAccount)
  * - Protected Route
  */
 router.get("/", authMiddleware, getUserAccountsController)
+
+
+/**
+ * - GET /api/accounts/balance/:accountId
+ */
+router.get("/balance/:accountId", authMiddleware, getAccountBalanceController)
+
+
 
 
 export default router
