@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
+    "cmp": "rimraf dist && tsc -w",
     "dev": "nodemon dist/server.js",
+    "build": "tsc",
     "start": "node dist/server.js"
   },
   "keywords": [],
