@@ -18,5 +18,4 @@ app.get("/",(req,res)=>{
 // Use Routes 
 app.use("/api/auth",authRouter)
 app.use("/api/accounts",accountRouter)
-app.use("/api/transactions",transaction
-    Routes)
+app.use("/api/transactions",transactionRoutes)
