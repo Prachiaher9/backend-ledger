@@ -1,6 +1,6 @@
 import express from "express"
 import {authMiddleware} from "../middleware/auth.middleware"
-import createAccount from "../controllers/account.controller"
+import createAccount, { getUserAccountsController } from "../controllers/account.controller"
 
 const router = express.Router()
 
@@ -11,5 +11,13 @@ const router = express.Router()
 */
 
 router.post("/",authMiddleware,createAccount)
+
+/**
+ * - GET /api/accounts/
+ * - Get all accounts of the logged-in user
+ * - Protected Route
+ */
+router.get("/", authMiddleware, getUserAccountsController)
+
 
 export default router
