@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import userModel from "../models/user.model";
 import jwt from "jsonwebtoken";
 import emailService from "../services/email.service"
+import TokenBlacklistModel from "../models/blackList.model";
+
 
 /**
  * - user register controller
@@ -84,5 +86,39 @@ export const userLoginController = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Error logging in" });
+  }
+};
+
+
+
+export const userLogoutController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const token =
+      req.cookies?.token ||
+      req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      res.status(200).json({
+        message: "User logged out successfully",
+      });
+      return;
+    }
+
+    await TokenBlacklistModel.create({
+      token,
+    });
+
+    res.clearCookie("token");
+
+    res.status(200).json({
+      message: "User logged out successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong during logout",
+    });
   }
 };

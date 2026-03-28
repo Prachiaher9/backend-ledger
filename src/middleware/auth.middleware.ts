@@ -1,16 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import userModel from "../models/user.model";
+import TokenBlacklistModel from "../models/blackList.model";
 
 interface CustomRequest extends Request {
   user?: any;
 }
 
 const getToken = (req: Request): string | undefined => {
-  return (
-    req.cookies?.token ||
-    req.headers.authorization?.split(" ")[1]
-  );
+  return req.cookies?.token || req.headers.authorization?.split(" ")[1];
 };
 
 const verifyToken = (token: string): JwtPayload => {
@@ -24,7 +22,7 @@ const verifyToken = (token: string): JwtPayload => {
 export const authMiddleware = async (
   req: CustomRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const token = getToken(req);
 
@@ -33,6 +31,13 @@ export const authMiddleware = async (
     return;
   }
 
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
+
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is invalid",
+    });
+  }
   try {
     const decoded = verifyToken(token);
     const user = await userModel.findById(decoded.userId);
@@ -53,7 +58,7 @@ export const authMiddleware = async (
 export const authSystemUserMiddleware = async (
   req: CustomRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const token = getToken(req);
 
@@ -62,12 +67,17 @@ export const authSystemUserMiddleware = async (
     return;
   }
 
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
+
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is invalid",
+    });
+  }
   try {
     const decoded = verifyToken(token);
 
-    const user = await userModel
-      .findById(decoded.userId)
-      .select("+systemUser");
+    const user = await userModel.findById(decoded.userId).select("+systemUser");
 
     if (!user || !user.systemUser) {
       res.status(403).json({ message: "Not a system user" });
